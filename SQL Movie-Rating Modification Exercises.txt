@@ -1,0 +1,49 @@
+SCHEMA:
+
+Movie ( mID, title, year, director ) 
+English: There is a movie with ID number mID, a title, a release year, and a director. 
+
+Reviewer ( rID, name ) 
+English: The reviewer with ID number rID has a certain name. 
+
+Rating ( rID, mID, stars, ratingDate ) 
+English: The reviewer rID gave the movie mID a number of stars rating (1-5) on a certain ratingDate. 
+
+EXERCISES:
+
+
+Q1
+0/1 points (graded)
+Add the reviewer Roger Ebert to your database, with an rID of 209.
+
+INSERT INTO Reviewer values(209, 'Robert Ebert')
+
+Q2
+1/1 point (graded)
+For all movies that have an average rating of 4 stars or higher, add 25 to the release year. (Update the existing tuples; don't insert new tuples.)
+
+UPDATE MOVIE
+SET year = year +25
+WHERE MOVIE.mID in (
+SELECT mID
+FROM rating 
+Group by mID
+HAVING AVG(stars)>=4)
+
+
+Q3
+1/1 point (graded)
+Remove all ratings where the movie's year is before 1970 or after 2000, and the rating is fewer than 4 stars.
+
+DELETE from rating 
+Where rating.mID in 
+(
+SELECT mID
+FROM Rating inner join Movie using(mID)
+WHERE year< 1970 or year >2000 
+)
+and rating.stars <4
+
+
+
+
