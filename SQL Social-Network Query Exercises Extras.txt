@@ -1,0 +1,109 @@
+SCHEMA:
+
+Highschooler ( ID, name, grade ) 
+English: There is a high school student with unique ID and a given first name in a certain grade. 
+
+Friend ( ID1, ID2 ) 
+English: The student with ID1 is friends with the student with ID2. Friendship is mutual, so if (123, 456) is in the Friend table, so is (456, 123). 
+
+Likes ( ID1, ID2 ) 
+English: The student with ID1 likes the student with ID2. Liking someone is not necessarily mutual, so if (123, 456) is in the Likes table, there is no guarantee that (456, 123) is also present.
+
+Q1
+0 points (ungraded)
+For every situation where student A likes student B, but student B likes a different student C, return the names and grades of A, B, and C.
+
+SELECT h1.name, h1.grade, h2.name, h2.grade, h3.name, h3.grade 
+FROM(
+SELECT IDA, IDB, IDC
+FROM(
+SELECT IDA, ID1 as IDB, l2.ID2  as IDC
+FROM (SELECT l1.ID1 as IDA, l1.ID2 as ID1 FROM likes l1)
+inner join likes l2 using(ID1)) as ALIAS
+WHERE IDA <> IDC)as ALIAS2
+inner join highschooler h1 on h1.ID = ALIAS2.IDA
+inner join highschooler h2 on h2.ID = ALIAS2.IDB
+inner join highschooler h3 on h3.ID = ALIAS2.IDC
+
+
+Q2
+0 points (ungraded)
+Find those students for whom all of their friends are in different grades from themselves. Return the students' names and grades
+
+SELECT name, grade 
+From highschooler h1 
+WHERE grade not in (SELECT grade
+FROM Friend, highschooler h2
+WHERE Friend.ID1  = h1.ID and Friend.ID2 = h2.ID)
+
+Q3
+0 points (ungraded)
+What is the average number of friends per student? (Your result should be just one number.)
+
+SELECT AVG(N_FRIENDS)
+FROM(SELECT count(ID2) as N_FRIENDS
+FROM friend
+group by ID1)
+
+Q4
+0 points (ungraded)
+Find the number of students who are either friends with Cassandra or are friends of friends of Cassandra. Do not count Cassandra, even though technically she is a friend of a friend.
+
+SELECT COUNT(*)
+FROM(
+SELECT FID FROM 
+(SELECT FID, ID2
+FROM( SELECT FID, ID2  
+FROM
+(SELECT ID2 as FID
+FROM friend f1
+WHERE ID1 = (Select ID as CID
+FROM Highschooler
+Where name = 'Cassandra')
+), friend f2 
+
+WHERE FID = f2.ID1)
+WHERE ID2 <> (Select ID as CID FROM Highschooler Where name = 'Cassandra'))	
+
+union 
+
+SELECT ID2 FROM 
+( SELECT FID, ID2
+FROM( SELECT FID, ID2  
+FROM
+(SELECT ID2 as FID
+FROM friend f1
+WHERE ID1 = (Select ID as CID
+FROM Highschooler
+Where name = 'Cassandra')
+), friend f2 
+
+WHERE FID = f2.ID1
+)
+WHERE ID2 <> (Select ID as CID FROM Highschooler Where name = 'Cassandra')
+)	
+)
+
+Q5
+0 points (ungraded)
+Find the name and grade of the student(s) with the greatest number of friends
+
+SELECT name, grade
+FROM(
+SELECT ID1 as ID
+FROM 
+(
+SElECT ID1,  COUNT(*) AS group_size
+FROM Friend 
+Group by ID1)
+WHERE group_size = 
+(SELECT max(group_size)
+FROM
+(SElECT ID1,  COUNT(*) AS group_size
+FROM Friend 
+Group by ID1
+))
+)
+inner JOIN Highschooler using(ID)
+
+
